@@ -237,11 +237,23 @@ function qCharWord(){
   const word=t.word;
   const pos=word.indexOf(missing);
   const show= pos>=0 ? word.slice(0,pos)+'＿'+word.slice(pos+1) : '＿'+word;
-  // 干擾詞（用相近字嘅詞，且都缺字）
-  const distr=nearChar(t).filter(s=>s.word).slice(0,3).map(s=>{
+  // 干擾詞（用相近字嘅詞，且都缺字）— 去重
+  const seen=new Set([show]);
+  const distr=[];
+  for(const s of nearChar(t)){
+    if(!s.word) continue;
     const sp=s.word.indexOf(s.c);
-    return sp>=0 ? s.word.slice(0,sp)+'＿'+s.word.slice(sp+1) : '＿'+s.word;
-  });
+    const masked = sp>=0 ? s.word.slice(0,sp)+'＿'+s.word.slice(sp+1) : '＿'+s.word;
+    if(!seen.has(masked) && masked!==show){ seen.add(masked); distr.push(masked); }
+    if(distr.length>=3) break;
+  }
+  // 若唔夠 3 個干擾，用隨機詞補
+  for(const w of shuffle(pool().filter(x=>x.word))){
+    if(distr.length>=3) break;
+    const sp=w.word.indexOf(w.c);
+    const masked = sp>=0 ? w.word.slice(0,sp)+'＿'+w.word.slice(sp+1) : '＿'+w.word;
+    if(!seen.has(masked) && masked!==show){ seen.add(masked); distr.push(masked); }
+  }
   const opts=shuffle([show, ...distr]);
   return {
     qtype:'🎧 聽單字，邊個詞缺咗呢個字？',
