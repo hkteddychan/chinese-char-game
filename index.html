@@ -15,49 +15,52 @@
            display:flex; justify-content:space-between; align-items:center;
            font-size:15px; color:#333; z-index:5; }
   header .brand { font-weight:bold; color:#1b6dc2; font-size:17px; }
-  header .level { padding:3px 10px; background:#4a9df8; color:#fff; border-radius:12px; font-size:13px; }
   main { flex:1; position:relative; overflow:hidden; }
 
-  /* 開始畫面 */
   #start { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
            justify-content:center; gap:18px; padding:28px; background:linear-gradient(160deg,#dff0ff,#cfe4ff); }
   #start h1 { font-size:34px; color:#1b6dc2; letter-spacing:2px; }
-  #start .sub { color:#5a7799; font-size:15px; }
+  #start .sub { color:#5a7799; font-size:15px; text-align:center; line-height:1.5; }
   .menu { display:flex; flex-direction:column; gap:12px; width:100%; max-width:360px; }
-  .menu button { padding:16px; font-size:17px; font-weight:bold; border:none; border-radius:14px;
+  .menu button { padding:15px 18px; font-size:16px; font-weight:bold; border:none; border-radius:14px;
                  cursor:pointer; color:#fff; box-shadow:0 4px 12px rgba(30,90,160,.25);
-                 transition:.2s; }
+                 transition:.2s; text-align:left; line-height:1.4; }
+  .menu button small { display:block; font-size:12px; font-weight:normal; opacity:.85; }
   .menu button:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(30,90,160,.35); }
   .menu button:active { transform:scale(.97); }
   .b1 { background:linear-gradient(90deg,#4a9df8,#2d7ff9); }
   .b2 { background:linear-gradient(90deg,#34c759,#28a745); }
   .b3 { background:linear-gradient(90deg,#ff9500,#ff7a00); }
-  .b4 { background:linear-gradient(90deg,#af52de,#8e3ad6); }
-  .levelsel { display:flex; gap:8px; margin-top:4px; }
-  .levelsel button { padding:8px 16px; font-size:14px; border-radius:20px; font-weight:bold;
+  .levelsel { display:flex; gap:8px; margin-top:4px; width:100%; max-width:360px; }
+  .levelsel button { padding:8px 12px; font-size:13px; border-radius:20px; font-weight:bold;
                      border:2px solid #4a9df8; background:#fff; color:#2d7ff9; cursor:pointer; flex:1; }
   .levelsel button.on { background:#4a9df8; color:#fff; }
 
-  /* 遊戲畫面 */
   #game { position:absolute; inset:0; display:none; flex-direction:column; }
   #qcard { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;
            gap:14px; padding:18px; }
-  #qtype { font-size:13px; color:#6b86a8; font-weight:bold; }
-  #big { font-size:100px; font-weight:bold; color:#1b3a5a; line-height:1;
-         padding:8px 30px; border-radius:16px; background:#fff;
-         box-shadow:0 6px 20px rgba(30,90,160,.2); cursor:pointer; user-select:none;
-         transition:.15s; text-align:center; min-width:200px; }
-  #big:active { transform:scale(.95); }
-  #hint { font-size:14px; color:#5a7799; min-height:22px; }
-  #options { display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-             padding:0 12px 30px; }
-  .opt { flex:1 1 45%; min-width:120px; padding:14px 10px; font-size:26px; font-weight:bold;
+  #qtype { font-size:13px; color:#6b86a8; font-weight:bold; text-align:center; min-height:18px; }
+  .playrow { display:flex; align-items:center; flex-direction:column; gap:6px; }
+  #playBtn { width:62px; height:62px; border-radius:50%; border:none; font-size:28px;
+             background:linear-gradient(135deg,#4a9df8,#2d7ff9); color:#fff;
+             box-shadow:0 4px 14px rgba(40,120,220,.4); cursor:pointer;
+             display:flex; align-items:center; justify-content:center; }
+  #playBtn:active { transform:scale(.92); }
+  #autoCount { font-size:12px; color:#8aa0b8; font-weight:bold; min-height:16px; }
+  #big { font-size:42px; font-weight:bold; color:#1b3a5a; line-height:1.35; text-align:center;
+         padding:14px 24px; border-radius:16px; background:#fff;
+         box-shadow:0 6px 20px rgba(30,90,160,.18); min-height:100px;
+         display:flex; align-items:center; justify-content:center; width:100%; }
+  #big .b { display:inline-block; min-width:1.1em; border-bottom:3px solid #4a9df8;
+            margin:0 3px; color:#2d7ff9; }
+  #hint { font-size:13px; color:#94a7bd; min-height:18px; }
+  #options { display:flex; flex-direction:column; gap:10px; width:100%; padding:0 18px 28px; }
+  .opt { padding:14px 18px; font-size:24px; font-weight:bold;
          border:2px solid #bcd6f0; border-radius:14px; background:#fff; color:#1a3a5a;
          cursor:pointer; transition:.1s; text-align:center; }
   .opt:active { transform:scale(.96); }
   .opt.correct { background:#34c759; color:#fff; border-color:#28a745; }
   .opt.wrong { background:#ff3b30; color:#fff; border-color:#d9372e; }
-  /* 結果 */
   .overlay { position:absolute; inset:0; background:rgba(0,40,80,.55); backdrop-filter:blur(4px);
              display:none; align-items:center; justify-content:center; z-index:10; }
   .panel { background:#fff; border-radius:20px; padding:28px; text-align:center; max-width:340px;
@@ -88,7 +91,7 @@
   <main>
     <div id="start">
       <h1>📖 中文認字</h1>
-      <div class="sub">聽、睇、認 — 邊玩邊學中文</div>
+      <div class="sub">聽住發音，揀啱答案 — 邊玩邊學</div>
       <div class="levelsel">
         <button data-lv="1" class="on">一年級</button>
         <button data-lv="2">二年級</button>
@@ -96,16 +99,20 @@
         <button data-lv="0">全部</button>
       </div>
       <div class="menu">
-        <button class="b1" data-mode="hear">🔊 聽字揀字 <small>(聽讀音揀出啱嘅字)</small></button>
-        <button class="b2" data-mode="see">👀 睇字揀音 <small>(睇個字選啱讀音)</small></button>
-        <button class="b3" data-mode="word">📝 字配詞語 <small>(揀個字組成啱嘅詞)</small></button>
+        <button class="b1" data-mode="wordword">🔊 聽詞語選詞語<br><small>撳 ▶ 聽發音，揀出播緊嘅詞語</small></button>
+        <button class="b2" data-mode="sentence">📖 聽句子選缺字<br><small>聽成句，揀返句中欠咗嘅字</small></button>
+        <button class="b3" data-mode="charword">🔤 聽單字選缺字<br><small>聽單字發音，揀返缺咗嘅詞語</small></button>
       </div>
     </div>
 
     <div id="game">
       <div id="qcard">
         <div id="qtype"></div>
-        <div id="big">一</div>
+        <div class="playrow">
+          <button id="playBtn">▶️</button>
+          <div id="autoCount"></div>
+        </div>
+        <div id="big"></div>
         <div id="hint"></div>
         <div id="options"></div>
       </div>
@@ -126,128 +133,187 @@
 <script src="wordbank/words.js"></script>
 <script>
 const lvNames={1:'一年級',2:'二年級',3:'三年級',0:'全部'};
-let mode='hear', level=1, qs=[], idx=0, correct=0, wrong=0;
+let mode='wordword', level=1, correct=0, wrong=0;
+let currentGen=null, autoTimer=null;
 
 // 依 level 篩選字庫 — 用 c 字去重做 list
 const UNIQUE={};
 (function(){
   for(let i=0;i<WORDBANK.length;i++){ const w=WORDBANK[i];
     if(!w.c) continue;
-    let lv=1;
-    if(i>49) lv=2;
-    if(i>89) lv=3;
-    if(i>139) lv=4;
+    let lv=1; if(i>49)lv=2; if(i>89)lv=3; if(i>139)lv=4;
     w.lv=lv;
     if(!UNIQUE[w.c]) UNIQUE[w.c]=w;
   }
 })();
-function pool(){
-  return Object.values(UNIQUE).filter(w=>level===0 || w.lv<=level);
-}
+function pool(){ return Object.values(UNIQUE).filter(w=>level===0 || w.lv<=level); }
 
-// 隨機工具
 function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function pickOthers(seed,n){
-  const all=pool().filter(w=>w.c!==seed.c);
-  return shuffle(all).slice(0,n);
-}
 
-// TTS — Web Speech API，混合選 zh-HK / zh-CN
+// ---- TTS (粵語優先) ----
 let lang='zh-HK';
 function tts(text){
   try{
     if(!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.lang=lang; u.rate=.85; u.pitch=1;
-    // 揀個中文 voice
+    u.lang=lang; u.rate=.8; u.pitch=1.05;
     const vs=speechSynthesis.getVoices();
     const v=vs.find(v=>v.lang==='zh-HK')||vs.find(v=>v.lang==='zh-CN')||vs.find(v=>v.lang&&v.lang.startsWith('zh'));
     if(v) u.voice=v;
     speechSynthesis.speak(u);
   }catch(e){}
 }
-// voices 非同步
-if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>{}; }
 
-// ===== 模式 1: 聽字揀字 =====
-function genHear(){
-  const w=shuffle(pool())[0];
-  const opts=shuffle([...pickOthers(w,3).map(o=>o.c),w.c]);
-  return {title:w.c, options:opts, answer:w.c, qtype:'🔊 聽讀音，揀啱個字', hint:'再撳大字聽多次',
-          say:w.c, sayWord:w.word};
+// 揀「讀音相近」嘅字做干擾（答案難估）
+function nearChar(w){
+  const cands=pool().filter(o=>o.c!==w.c && o.word);
+  const score=o=>{
+    let s=0;
+    if(o.py===w.py) s+=3; else if(o.py&&w.py&&o.py[0]===w.py[0]) s+=2;
+    if(o.zy===w.zy) s+=3; else if(o.zy&&w.zy&&o.zy[0]===w.zy[0]) s+=2;
+    if(o.jp===w.jp) s+=3; else if(o.jp&&w.jp&&o.jp.slice(0,2).replace(/\d/g,'')===w.jp.slice(0,2).replace(/\d/g,'')) s+=2;
+    return s;
+  };
+  return cands.sort((a,b)=>score(b)-score(a));
 }
-// ===== 模式 2: 睇字揀音 =====
-function genSee(){
-  const w=shuffle(pool())[0];
-  const opts=shuffle([...pickOthers(w,3).map(o=>o.py+' ('+o.zy+')'),w.py+' ('+w.zy+')']);
-  return {title:w.c, options:opts, answer:w.py+' ('+w.zy+')', qtype:'👀 睇住個字，揀啱讀音',
-          hint:'('+w.word+') — '+(lang==='zh-HK'?w.jp:w.py), say:w.c};
-}
-// ===== 模式 3: 字配詞語 =====
-function genWord(){
-  const w=shuffle(pool())[0];
-  const opts=shuffle([...pickOthers(w,3).map(o=>o.c),w.c]);
-  // 詞語缺字題: 用 w.word (2字詞), 顯示 □+另一字，揀返缺咗個字
-  const word=w.word || (w.c+'現代');
-  const parts=word.split('');
-  // 確定邊位缺 (揀一處可填 w.c 的位置)
-  let display=word, blankAt=-1;
-  if(parts.length>=2){
-    // 簡單：遮住個字喺詞中第一次出現嘅位置
-    const pos=word.indexOf(w.c);
-    if(pos>=0){ display=word.slice(0,pos)+'□'+word.slice(pos+1); blankAt=pos; }
-    else { display='□'+word.slice(1); blankAt=0; }
-  } else { display='□'; blankAt=0; }
-  // 答案 = 缺嗰個字
-  const ansChar=blankAt>=0? word[blankAt] : w.c;
+function pickTarget(){ return shuffle(pool().filter(w=>w.word))[0]; }
+
+// ---- 模式1: 聽詞語選詞語（四揀一） ----
+function qWordWord(){
+  const t=pickTarget();
+  let opts=[t.word];
+  for(const s of nearChar(t)){
+    if(opts.length>=4) break;
+    if(s.word && !opts.includes(s.word)) opts.push(s.word);
+  }
+  // 補夠 4 個
+  for(const w of shuffle(pool().filter(x=>x.word && !opts.includes(x.word)))){
+    if(opts.length>=4) break;
+    opts.push(w.word);
+  }
+  opts=shuffle(opts.slice(0,4));
   return {
-    title: display,
-    options: opts,
-    answer: ansChar,
-    qtype:'📝 「'+word+'」— 揀返缺咗嘅字',
-    displayTitle: display,
-    say:w.c,
+    qtype:'🎧 聽一聽，邊個詞語啱？',
+    audio:'『'+t.word+'』',
+    display:'👇 揀出你聽到嘅詞語',
+    options:opts, answer:t.word
   };
 }
 
-function renderGear(g){
-  document.getElementById('qtype').textContent=g.qtype;
-  document.getElementById('big').textContent=g.title||'?';
-  document.getElementById('big').dataset.say=g.say||'';
-  document.getElementById('hint').textContent=g.hint||'';
-  document.getElementById('big').style.display=g.title?'block':'none';
-  if(g.title===null) document.getElementById('big').textContent='□';
-  const box=document.getElementById('options'); box.innerHTML='';
-  g.options.forEach((o,i)=>{
-    const b=document.createElement('button'); b.className='opt'; b.textContent=o;
-    b.onclick=()=>answerClick(b,o,g.answer); box.appendChild(b);
+// ---- 模式2: 聽句子選缺字（四揀一） ----
+function qSentence(){
+  const t=pickTarget();
+  const word=t.word;
+  // 遮 word 嘅第二個字（或只得一個字就遮佢），answer = 遮嘅字
+  const blankIdx = word.length>=2 ? 1 : 0;
+  const missing = word[blankIdx];
+  let display;
+  if(word.length>=2){
+    display = '今日我哋見到一個' + word.slice(0,blankIdx) + '＿。';
+  } else {
+    display = '今日我哋見到一個＿。';
+  }
+  const audio = display.replace('＿', missing);
+  // 干擾字（讀音相近）
+  const sim=listSimChars(t).filter(x=>x!==missing).slice(0,3);
+  const opts=shuffle([missing, ...sim]);
+  return {
+    qtype:'🎧 聽句子，揀返欠咗嘅字',
+    audio: audio,
+    display: display,
+    options:opts, answer:missing
+  };
+}
+function listSimChars(w){
+  const r=nearChar(w).map(o=>o.c).filter(x=>x!==w.c);
+  return r.slice(0,3);
+}
+
+// ---- 模式3: 聽單字選缺字（四揀一） ----
+function qCharWord(){
+  const t=pickTarget();
+  const missing=t.c;
+  const word=t.word;
+  const pos=word.indexOf(missing);
+  const show= pos>=0 ? word.slice(0,pos)+'＿'+word.slice(pos+1) : '＿'+word;
+  // 干擾詞（用相近字嘅詞，且都缺字）
+  const distr=nearChar(t).filter(s=>s.word).slice(0,3).map(s=>{
+    const sp=s.word.indexOf(s.c);
+    return sp>=0 ? s.word.slice(0,sp)+'＿'+s.word.slice(sp+1) : '＿'+s.word;
   });
+  const opts=shuffle([show, ...distr]);
+  return {
+    qtype:'🎧 聽單字，邊個詞缺咗呢個字？',
+    audio: missing,
+    display: show,
+    options:opts, answer:show
+  };
+}
+
+function gen(){
+  if(mode==='wordword') return qWordWord();
+  if(mode==='sentence') return qSentence();
+  return qCharWord();
+}
+
+function renderDisplay(g){
+  document.getElementById('qtype').textContent=g.qtype;
+  // 高亮＿空格
+  document.getElementById('big').innerHTML = g.display.replace(/＿/g,'<span class="b">＿</span>');
+  document.getElementById('hint').textContent='';
+  const box=document.getElementById('options'); box.innerHTML='';
+  g.options.forEach(o=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+    b.onclick=()=>answerClick(b,o,g.answer);
+    box.appendChild(b);
+  });
+}
+
+function playCurrent(){
+  if(currentGen && currentGen.audio) tts(currentGen.audio);
+}
+
+function makeQ(){
+  currentGen=gen();
+  renderDisplay(currentGen);
+  // 每題：可撳 play 或等 5 秒自動播
+  clearTimeout(autoTimer);
+  startAutoCount(5);
+  // 立即播一次
+  playCurrent();
+}
+function startAutoCount(n){
+  let left=n;
+  document.getElementById('autoCount').textContent='⏱ 下一次自動播放 '+left+'s';
+  autoTimer=setInterval(()=>{
+    left--;
+    if(left<=0){ clearInterval(autoTimer); document.getElementById('autoCount').textContent=''; playCurrent(); }
+    else document.getElementById('autoCount').textContent='⏱ 下一次自動播放 '+left+'s';
+  },1000);
 }
 
 function answerClick(el,val,ans){
   if(el.dataset.done) return;
+  clearInterval(autoTimer);
+  document.getElementById('autoCount').textContent='';
   const isC=val===ans;
-  if(isC){correct++;el.classList.add('correct');tts('正確，好叻！');}
-  else{wrong++;el.classList.add('wrong');const cs=[...el.parentNode.children].filter(b=>b.textContent===ans);
-    if(cs[0])cs[0].classList.add('correct');tts('再試下啦');}
+  if(isC){correct++;el.classList.add('correct');tts('正確');}
+  else{wrong++;el.classList.add('wrong');
+    const cs=[...el.parentNode.children].filter(b=>b.textContent===ans);
+    if(cs[0]) cs[0].classList.add('correct'); tts('再試下');
+  }
   updateStats();
-  setTimeout(nextQ, 900);
+  setTimeout(nextQ, 1200);
 }
 
-function makeQ(){
-  if(mode==='hear') renderGear(genHear());
-  else if(mode==='see') renderGear(genSee());
-  else renderGear(genWord());
-  // 自動讀出 (聽/睇 mode 讀個字)
-  if(mode==='hear') tts(document.getElementById('big').dataset.say);
-}
-function nextQ(){ if(idx>=9){ finish(); } else { idx++; makeQ(); } }
+function nextQ(){ if(correct+wrong>=10){ finish(); } else { makeQ(); } }
 function updateStats(){
   document.getElementById('statC').textContent='✓ '+correct;
   document.getElementById('statW').textContent='✗ '+wrong;
 }
 function finish(){
+  clearInterval(autoTimer);
   document.getElementById('game').style.display='none';
   const total=correct+wrong;
   const pct=total?Math.round(correct/total*100):0;
@@ -258,7 +324,7 @@ function finish(){
   document.getElementById('result').style.display='flex';
 }
 function startGame(m,lv){
-  mode=m; level=lv; idx=0; correct=0; wrong=0;
+  mode=m; level=lv; correct=0; wrong=0;
   updateStats();
   document.getElementById('start').style.display='none';
   document.getElementById('game').style.display='flex';
@@ -267,6 +333,7 @@ function startGame(m,lv){
   makeQ();
 }
 function exitGame(){
+  clearInterval(autoTimer);
   document.getElementById('game').style.display='none';
   document.getElementById('hudstats').style.display='none';
   document.getElementById('exit').style.display='none';
@@ -275,6 +342,7 @@ function exitGame(){
 }
 
 // 事件
+document.getElementById('playBtn').onclick=playCurrent;
 document.querySelector('.menu').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.dataset.mode) startGame(b.dataset.mode,level);
@@ -284,11 +352,6 @@ document.querySelectorAll('.levelsel button').forEach(b=>{
     document.querySelectorAll('.levelsel button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); level=+b.dataset.lv;
   };
-});
-document.getElementById('big').addEventListener('click',e=>{
-  if(mode==='hear') tts(e.target.dataset.say);
-  else if(mode==='hear') tts(e.target.dataset.say);
-  else tts(e.target.dataset.say);
 });
 document.getElementById('resBtns').onclick=()=>{ document.getElementById('result').style.display='none'; startGame(mode,level); };
 document.getElementById('exit').onclick=exitGame;
