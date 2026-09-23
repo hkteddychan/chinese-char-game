@@ -82,7 +82,7 @@
 <body>
 <div id="app">
   <header>
-    <span class="brand">📖 中文認字</span>
+    <span class="brand">📖 中文認字 <span id="modeName" style="font-size:13px;color:#6b86a8;font-weight:normal"></span></span>
     <span id="hudstats" style="display:none">
       <span class="correct" id="statC">✓ 0</span>
       <span class="wrong" id="statW">✗ 0</span>
@@ -107,6 +107,10 @@
 
     <div id="game">
       <div id="qcard">
+        <div id="progressWrap">
+          <div id="progressBar"><div id="progressFill"></div></div>
+          <span id="qCounter">1/10</span>
+        </div>
         <div id="qtype"></div>
         <div class="playrow">
           <button id="playBtn">▶️</button>
@@ -124,6 +128,9 @@
         <h2 id="resTitle"></h2>
         <div class="score" id="resScore"></div>
         <button id="resBtns">再玩一次</button>
+        <div style="margin-top:10px;display:flex;gap:10px;justify-content:center">
+          <button id="resMenu" style="background:linear-gradient(90deg,#888,#666)">🏠 主選單</button>
+        </div>
       </div>
     </div>
     <button class="exbtn" id="exit" style="display:none">✕ 退出</button>
@@ -154,6 +161,8 @@ function pool(){ return Object.values(UNIQUE).filter(w=>level===0 || w.lv<=level
 function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function randWord(o){ if(!o) return ""; const ws=(o.all&&o.all.length)?o.all.filter(x=>x.includes(o.c)):[]; if(ws.length) return ws[Math.floor(Math.random()*ws.length)]; if(o.word)return o.word; return o.c; }
 
+const MODE_NAMES={wordword:'聽詞語選詞語',sentence:'聽句子選缺字',charword:'聽單字選缺字'};
+let playBtn=document.getElementById('playBtn');
 // ---- TTS (粵語優先) ----
 let lang='zh-HK';
 function tts(text){
@@ -234,26 +243,37 @@ function qWordWord(){
 }
 
 // ---- 模式2: 聽句子選缺字（四揀一） ----
+const SENT_TEMPLATES=[
+  (w)=>'我哋今日學到「'+w+'」呢個詞語。',
+  (w)=>'你識唔識讀「'+w+'」？',
+  (w)=>'老師教我寫「'+w+'」。',
+  (w)=>'呢個字係「'+w+'」。',
+  (w)=>'你知唔知道「'+w+'」？'
+];
 function qSentence(){
   const t=pickTarget();
   const word=t.word;
   // 遮 word 嘅第二個字（或只得一個字就遮佢），answer = 遮嘅字
   const blankIdx = word.length>=2 ? 1 : 0;
   const missing = word[blankIdx];
-  let display;
-  if(word.length>=2){
-    display = '今日我哋見到一個' + word.slice(0,blankIdx) + '＿。';
-  } else {
-    display = '今日我哋見到一個＿。';
-  }
-  const audio = display.replace('＿', missing);
-  // 干擾字（讀音相近）
-  const sim=listSimChars(t).filter(x=>x!==missing).slice(0,3);
+  const full = word.length>=2 ? word.slice(0,blankIdx)+'＿'+word.slice(blankIdx+1) : '＿';
+  const say = word.length>=2 ? word.slice(0,blankIdx)+missing+word.slice(blankIdx+1) : missing;
+  const tpl = SENT_TEMPLATES[Math.floor(Math.random()*SENT_TEMPLATES.length)];
+  const dialog = tpl(full);        // 顯示:「我哋今日學到『中＿』呢個詞語。」
+  const dialogSay = tpl(say);      // 讀:「…學到『中國』…」
+  // 干擾字（讀音相近，去 missing）
+  let sim=listSimChars(t).filter(x=>x!==missing).slice(0,3);
   const opts=shuffle([missing, ...sim]);
+  // 若唔夠 4 個選項（池細時），補隨機字
+  while(opts.length<4){
+    const r=shuffle(pool().filter(w=>!opts.includes(w.c) && w.c!==missing))[0];
+    if(!r) break;
+    opts.push(r.c);
+  }
   return {
     qtype:'🎧 聽句子，揀返欠咗嘅字',
-    audio: audio,
-    display: display,
+    audio: dialogSay,
+    display: dialog,
     options:opts, answer:missing
   };
 }
@@ -290,6 +310,17 @@ function qCharWord(){
     if(!seen.has(masked) && masked!==show){ seen.add(masked); distr.push(masked); }
   }
   const opts=shuffle([show, ...distr]);
+  // 確保 4 個選項
+  while(opts.length<4){
+    const r=shuffle(pool().filter(w=>{
+      const m=randWord(w); if(!m) return false;
+      const sp=m.indexOf(w.c); const mm=sp>=0?m.slice(0,sp)+'＿'+m.slice(sp+1):'＿'+m;
+      return !opts.includes(mm) && mm!==show;
+    }))[0];
+    if(!r) break;
+    const m=randWord(r); const sp=m.indexOf(r.c);
+    opts.push(sp>=0?m.slice(0,sp)+'＿'+m.slice(sp+1):'＿'+m);
+  }
   return {
     qtype:'🎧 聽單字，邊個詞缺咗呢個字？',
     audio: missing,
@@ -317,6 +348,9 @@ function renderDisplay(g){
   });
 }
 
+// 撳大格仔重播
+document.getElementById('big').addEventListener('click', ()=>playCurrent());
+
 function playCurrent(){
   if(currentGen && currentGen.audio) tts(currentGen.audio);
 }
@@ -324,15 +358,20 @@ function playCurrent(){
 function makeQ(){
   currentGen=gen();
   renderDisplay(currentGen);
+  // 進度
+  document.getElementById('qCounter').textContent=(correct+wrong+1)+'/10';
+  document.getElementById('progressFill').style.width=((correct+wrong)/10*100)+'%';
   // 每題：可撳 play 或等 5 秒自動播
-  clearTimeout(autoTimer);
+  clearInterval(autoTimer);
   startAutoCount(5);
   // 立即播一次
   playCurrent();
+  playBtn.classList.add('pulsing');
 }
 function startAutoCount(n){
   let left=n;
   document.getElementById('autoCount').textContent='⏱ 下一次自動播放 '+left+'s';
+  playBtn.classList.add('pulsing');
   autoTimer=setInterval(()=>{
     left--;
     if(left<=0){ clearInterval(autoTimer); document.getElementById('autoCount').textContent=''; playCurrent(); }
@@ -342,15 +381,22 @@ function startAutoCount(n){
 
 function answerClick(el,val,ans){
   if(el.dataset.done) return;
+  el.dataset.done='1';
   clearInterval(autoTimer);
+  playBtn.classList.remove('pulsing');
   document.getElementById('autoCount').textContent='';
   const isC=val===ans;
-  if(isC){correct++;el.classList.add('correct');tts('正確');}
+  if(isC){correct++;el.classList.add('correct');tts('答啱喇，好叻！');
+    // pop animation
+    const big=document.getElementById('big'); big.classList.remove('pop'); void big.offsetWidth; big.classList.add('pop');
+  }
   else{wrong++;el.classList.add('wrong');
     const cs=[...el.parentNode.children].filter(b=>b.textContent===ans);
-    if(cs[0]) cs[0].classList.add('correct'); tts('再試下');
+    if(cs[0]) cs[0].classList.add('correct'); tts('再試下啦');
   }
   updateStats();
+  // 防重複點擊：停用其他 options
+  el.parentNode.querySelectorAll('.opt').forEach(b=>{ if(b!==el && !b.classList.contains('correct')) b.disabled=true; });
   setTimeout(nextQ, 1200);
 }
 
@@ -361,6 +407,7 @@ function updateStats(){
 }
 function finish(){
   clearInterval(autoTimer);
+  playBtn.classList.remove('pulsing');
   document.getElementById('game').style.display='none';
   const total=correct+wrong;
   const pct=total?Math.round(correct/total*100):0;
@@ -372,6 +419,9 @@ function finish(){
 }
 function startGame(m,lv){
   mode=m; level=lv; correct=0; wrong=0; questionIdx=0; usedChars.clear();
+  document.getElementById('modeName').textContent='· '+MODE_NAMES[m] + (level>0?'（'+lvNames[level]+'）':'（全部）');
+  document.getElementById('qCounter').textContent='1/10';
+  document.getElementById('progressFill').style.width='0%';
   updateStats();
   document.getElementById('start').style.display='none';
   document.getElementById('game').style.display='flex';
@@ -381,6 +431,8 @@ function startGame(m,lv){
 }
 function exitGame(){
   clearInterval(autoTimer);
+  playBtn.classList.remove('pulsing');
+  document.getElementById('modeName').textContent='';
   document.getElementById('game').style.display='none';
   document.getElementById('hudstats').style.display='none';
   document.getElementById('exit').style.display='none';
@@ -401,6 +453,7 @@ document.querySelectorAll('.levelsel button').forEach(b=>{
   };
 });
 document.getElementById('resBtns').onclick=()=>{ document.getElementById('result').style.display='none'; startGame(mode,level); };
+document.getElementById('resMenu').onclick=exitGame;
 document.getElementById('exit').onclick=exitGame;
 </script>
 </body>
