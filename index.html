@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>📖 中文認字小遊戲</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { font-family:-apple-system,'PingFang HK','Microsoft JhengHei','Segoe UI',sans-serif;
+         background:linear-gradient(160deg,#e8f4ff,#cfe9ff); color:#1a2a3a; overflow:hidden; }
+  #app { max-width:560px; margin:0 auto; height:100vh; display:flex; flex-direction:column;
+         background:linear-gradient(180deg,#f0f8ff,#dff0ff); box-shadow:0 0 40px rgba(0,60,120,.2); }
+  header { padding:14px 18px; background:#fff; border-bottom:2px solid #4a9df8;
+           display:flex; justify-content:space-between; align-items:center;
+           font-size:15px; color:#333; z-index:5; }
+  header .brand { font-weight:bold; color:#1b6dc2; font-size:17px; }
+  header .level { padding:3px 10px; background:#4a9df8; color:#fff; border-radius:12px; font-size:13px; }
+  main { flex:1; position:relative; overflow:hidden; }
+
+  /* 開始畫面 */
+  #start { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+           justify-content:center; gap:18px; padding:28px; background:linear-gradient(160deg,#dff0ff,#cfe4ff); }
+  #start h1 { font-size:34px; color:#1b6dc2; letter-spacing:2px; }
+  #start .sub { color:#5a7799; font-size:15px; }
+  .menu { display:flex; flex-direction:column; gap:12px; width:100%; max-width:360px; }
+  .menu button { padding:16px; font-size:17px; font-weight:bold; border:none; border-radius:14px;
+                 cursor:pointer; color:#fff; box-shadow:0 4px 12px rgba(30,90,160,.25);
+                 transition:.2s; }
+  .menu button:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(30,90,160,.35); }
+  .menu button:active { transform:scale(.97); }
+  .b1 { background:linear-gradient(90deg,#4a9df8,#2d7ff9); }
+  .b2 { background:linear-gradient(90deg,#34c759,#28a745); }
+  .b3 { background:linear-gradient(90deg,#ff9500,#ff7a00); }
+  .b4 { background:linear-gradient(90deg,#af52de,#8e3ad6); }
+  .levelsel { display:flex; gap:8px; margin-top:4px; }
+  .levelsel button { padding:8px 16px; font-size:14px; border-radius:20px; font-weight:bold;
+                     border:2px solid #4a9df8; background:#fff; color:#2d7ff9; cursor:pointer; flex:1; }
+  .levelsel button.on { background:#4a9df8; color:#fff; }
+
+  /* 遊戲畫面 */
+  #game { position:absolute; inset:0; display:none; flex-direction:column; }
+  #qcard { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;
+           gap:14px; padding:18px; }
+  #qtype { font-size:13px; color:#6b86a8; font-weight:bold; }
+  #big { font-size:100px; font-weight:bold; color:#1b3a5a; line-height:1;
+         padding:8px 30px; border-radius:16px; background:#fff;
+         box-shadow:0 6px 20px rgba(30,90,160,.2); cursor:pointer; user-select:none;
+         transition:.15s; text-align:center; min-width:200px; }
+  #big:active { transform:scale(.95); }
+  #hint { font-size:14px; color:#5a7799; min-height:22px; }
+  #options { display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+             padding:0 12px 30px; }
+  .opt { flex:1 1 45%; min-width:120px; padding:14px 10px; font-size:26px; font-weight:bold;
+         border:2px solid #bcd6f0; border-radius:14px; background:#fff; color:#1a3a5a;
+         cursor:pointer; transition:.1s; text-align:center; }
+  .opt:active { transform:scale(.96); }
+  .opt.correct { background:#34c759; color:#fff; border-color:#28a745; }
+  .opt.wrong { background:#ff3b30; color:#fff; border-color:#d9372e; }
+  /* 結果 */
+  .overlay { position:absolute; inset:0; background:rgba(0,40,80,.55); backdrop-filter:blur(4px);
+             display:none; align-items:center; justify-content:center; z-index:10; }
+  .panel { background:#fff; border-radius:20px; padding:28px; text-align:center; max-width:340px;
+           width:90%; box-shadow:0 10px 40px rgba(0,0,0,.4); }
+  .panel h2 { font-size:26px; }
+  .panel .score { font-size:16px; color:#5a7799; margin:10px 0 18px; }
+  .panel button { padding:14px 28px; font-size:16px; font-weight:bold; border:none;
+                  border-radius:14px; background:linear-gradient(90deg,#4a9df8,#2d7ff9);
+                  color:#fff; cursor:pointer; }
+  .stars { font-size:44px; margin-bottom:8px; }
+  #hudstats { display:flex; gap:16px; font-size:14px; font-weight:bold; }
+  #hudstats .correct { color:#28a745; }
+  #hudstats .wrong { color:#ff3b30; }
+  .exbtn { position:absolute; top:14px; right:14px; z-index:6; background:rgba(255,255,255,.9);
+           border:1px solid #bcd6f0; color:#1b6dc2; border-radius:20px; padding:6px 14px;
+           font-weight:bold; cursor:pointer; font-size:14px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="brand">📖 中文認字</span>
+    <span id="hudstats" style="display:none">
+      <span class="correct" id="statC">✓ 0</span>
+      <span class="wrong" id="statW">✗ 0</span>
+    </span>
+  </header>
+  <main>
+    <div id="start">
+      <h1>📖 中文認字</h1>
+      <div class="sub">聽、睇、認 — 邊玩邊學中文</div>
+      <div class="levelsel">
+        <button data-lv="1" class="on">一年級</button>
+        <button data-lv="2">二年級</button>
+        <button data-lv="3">三年級</button>
+        <button data-lv="0">全部</button>
+      </div>
+      <div class="menu">
+        <button class="b1" data-mode="hear">🔊 聽字揀字 <small>(聽讀音揀出啱嘅字)</small></button>
+        <button class="b2" data-mode="see">👀 睇字揀音 <small>(睇個字選啱讀音)</small></button>
+        <button class="b3" data-mode="word">📝 字配詞語 <small>(揀個字組成啱嘅詞)</small></button>
+      </div>
+    </div>
+
+    <div id="game">
+      <div id="qcard">
+        <div id="qtype"></div>
+        <div id="big">一</div>
+        <div id="hint"></div>
+        <div id="options"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="result">
+      <div class="panel">
+        <div class="stars" id="stars"></div>
+        <h2 id="resTitle"></h2>
+        <div class="score" id="resScore"></div>
+        <button id="resBtns">再玩一次</button>
+      </div>
+    </div>
+    <button class="exbtn" id="exit" style="display:none">✕ 退出</button>
+  </main>
+</div>
+
+<script src="wordbank/words.js"></script>
+<script>
+const lvNames={1:'一年級',2:'二年級',3:'三年級',0:'全部'};
+let mode='hear', level=1, qs=[], idx=0, correct=0, wrong=0;
+
+// 依 level 篩選字庫 — 用 c 字去重做 list
+const UNIQUE={};
+(function(){
+  for(let i=0;i<WORDBANK.length;i++){ const w=WORDBANK[i];
+    if(!w.c) continue;
+    let lv=1;
+    if(i>49) lv=2;
+    if(i>89) lv=3;
+    if(i>139) lv=4;
+    w.lv=lv;
+    if(!UNIQUE[w.c]) UNIQUE[w.c]=w;
+  }
+})();
+function pool(){
+  return Object.values(UNIQUE).filter(w=>level===0 || w.lv<=level);
+}
+
+// 隨機工具
+function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickOthers(seed,n){
+  const all=pool().filter(w=>w.c!==seed.c);
+  return shuffle(all).slice(0,n);
+}
+
+// TTS — Web Speech API，混合選 zh-HK / zh-CN
+let lang='zh-HK';
+function tts(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=lang; u.rate=.85; u.pitch=1;
+    // 揀個中文 voice
+    const vs=speechSynthesis.getVoices();
+    const v=vs.find(v=>v.lang==='zh-HK')||vs.find(v=>v.lang==='zh-CN')||vs.find(v=>v.lang&&v.lang.startsWith('zh'));
+    if(v) u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+// voices 非同步
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>{}; }
+
+// ===== 模式 1: 聽字揀字 =====
+function genHear(){
+  const w=shuffle(pool())[0];
+  const opts=shuffle([...pickOthers(w,3).map(o=>o.c),w.c]);
+  return {title:w.c, options:opts, answer:w.c, qtype:'🔊 聽讀音，揀啱個字', hint:'再撳大字聽多次',
+          say:w.c, sayWord:w.word};
+}
+// ===== 模式 2: 睇字揀音 =====
+function genSee(){
+  const w=shuffle(pool())[0];
+  const opts=shuffle([...pickOthers(w,3).map(o=>o.py+' ('+o.zy+')'),w.py+' ('+w.zy+')']);
+  return {title:w.c, options:opts, answer:w.py+' ('+w.zy+')', qtype:'👀 睇住個字，揀啱讀音',
+          hint:'('+w.word+') — '+(lang==='zh-HK'?w.jp:w.py), say:w.c};
+}
+// ===== 模式 3: 字配詞語 =====
+function genWord(){
+  const w=shuffle(pool())[0];
+  const opts=shuffle([...pickOthers(w,3).map(o=>o.c),w.c]);
+  // 詞語缺字題: 用 w.word (2字詞), 顯示 □+另一字，揀返缺咗個字
+  const word=w.word || (w.c+'現代');
+  const parts=word.split('');
+  // 確定邊位缺 (揀一處可填 w.c 的位置)
+  let display=word, blankAt=-1;
+  if(parts.length>=2){
+    // 簡單：遮住個字喺詞中第一次出現嘅位置
+    const pos=word.indexOf(w.c);
+    if(pos>=0){ display=word.slice(0,pos)+'□'+word.slice(pos+1); blankAt=pos; }
+    else { display='□'+word.slice(1); blankAt=0; }
+  } else { display='□'; blankAt=0; }
+  // 答案 = 缺嗰個字
+  const ansChar=blankAt>=0? word[blankAt] : w.c;
+  return {
+    title: display,
+    options: opts,
+    answer: ansChar,
+    qtype:'📝 「'+word+'」— 揀返缺咗嘅字',
+    displayTitle: display,
+    say:w.c,
+  };
+}
+
+function renderGear(g){
+  document.getElementById('qtype').textContent=g.qtype;
+  document.getElementById('big').textContent=g.title||'?';
+  document.getElementById('big').dataset.say=g.say||'';
+  document.getElementById('hint').textContent=g.hint||'';
+  document.getElementById('big').style.display=g.title?'block':'none';
+  if(g.title===null) document.getElementById('big').textContent='□';
+  const box=document.getElementById('options'); box.innerHTML='';
+  g.options.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+    b.onclick=()=>answerClick(b,o,g.answer); box.appendChild(b);
+  });
+}
+
+function answerClick(el,val,ans){
+  if(el.dataset.done) return;
+  const isC=val===ans;
+  if(isC){correct++;el.classList.add('correct');tts('正確，好叻！');}
+  else{wrong++;el.classList.add('wrong');const cs=[...el.parentNode.children].filter(b=>b.textContent===ans);
+    if(cs[0])cs[0].classList.add('correct');tts('再試下啦');}
+  updateStats();
+  setTimeout(nextQ, 900);
+}
+
+function makeQ(){
+  if(mode==='hear') renderGear(genHear());
+  else if(mode==='see') renderGear(genSee());
+  else renderGear(genWord());
+  // 自動讀出 (聽/睇 mode 讀個字)
+  if(mode==='hear') tts(document.getElementById('big').dataset.say);
+}
+function nextQ(){ if(idx>=9){ finish(); } else { idx++; makeQ(); } }
+function updateStats(){
+  document.getElementById('statC').textContent='✓ '+correct;
+  document.getElementById('statW').textContent='✗ '+wrong;
+}
+function finish(){
+  document.getElementById('game').style.display='none';
+  const total=correct+wrong;
+  const pct=total?Math.round(correct/total*100):0;
+  let star=''; if(pct>=90)star='⭐⭐⭐';else if(pct>=70)star='⭐⭐';else if(pct>=50)star='⭐';else star='😊';
+  document.getElementById('stars').textContent=star;
+  document.getElementById('resTitle').textContent=pct>=80?'好犀利！':'繼續努力！';
+  document.getElementById('resScore').textContent=`答啱 ${correct} 題 / 共 ${total} 題（${pct}%）`;
+  document.getElementById('result').style.display='flex';
+}
+function startGame(m,lv){
+  mode=m; level=lv; idx=0; correct=0; wrong=0;
+  updateStats();
+  document.getElementById('start').style.display='none';
+  document.getElementById('game').style.display='flex';
+  document.getElementById('hudstats').style.display='';
+  document.getElementById('exit').style.display='';
+  makeQ();
+}
+function exitGame(){
+  document.getElementById('game').style.display='none';
+  document.getElementById('hudstats').style.display='none';
+  document.getElementById('exit').style.display='none';
+  document.getElementById('start').style.display='flex';
+  document.getElementById('result').style.display='none';
+}
+
+// 事件
+document.querySelector('.menu').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.mode) startGame(b.dataset.mode,level);
+});
+document.querySelectorAll('.levelsel button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.levelsel button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); level=+b.dataset.lv;
+  };
+});
+document.getElementById('big').addEventListener('click',e=>{
+  if(mode==='hear') tts(e.target.dataset.say);
+  else if(mode==='hear') tts(e.target.dataset.say);
+  else tts(e.target.dataset.say);
+});
+document.getElementById('resBtns').onclick=()=>{ document.getElementById('result').style.display='none'; startGame(mode,level); };
+document.getElementById('exit').onclick=exitGame;
+</script>
+</body>
+</html>
