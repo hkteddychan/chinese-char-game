@@ -164,7 +164,7 @@ function pool(){ return Object.values(UNIQUE).filter(w=>level===0 || w.lv<=level
 function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function randWord(o){ if(!o) return ""; const ws=(o.all&&o.all.length)?o.all.filter(x=>x.includes(o.c)):[]; if(ws.length) return ws[Math.floor(Math.random()*ws.length)]; if(o.word)return o.word; return o.c; }
 
-const MODE_NAMES={wordword:'聽詞語選詞語',sentence:'聽句子選缺字',charword:'聽單字選缺字'};
+const MODE_NAMES={wordword:'聽詞語選詞語',sentence:'聽句子選缺字',charword:'聽單字選詞語'};
 let playBtn=document.getElementById('playBtn');
 // ---- TTS (粵語優先) ----
 let lang='zh-HK';
@@ -285,50 +285,39 @@ function listSimChars(w){
   return r.slice(0,3);
 }
 
-// ---- 模式3: 聽單字選缺字（四揀一） ----
+// ---- 模式3: 聽單字選詞語（四揀一） ----
 function qCharWord(){
   const t=pickTarget();
-  const missing=t.c;
-  const word=t.word;
-  const pos=word.indexOf(missing);
-  const show= pos>=0 ? word.slice(0,pos)+'＿'+word.slice(pos+1) : '＿'+word;
-  // 干擾詞（用相近字嘅詞，且都缺字）— 去重
-  const seen=new Set([show]);
-  const distr=[];
-  for(const s of nearChar(t)){
-    if(distr.length>=3) break;
-    const sw=randWord(s);
-    if(!sw) continue;
-    const sp=sw.indexOf(s.c);
-    const masked = sp>=0 ? sw.slice(0,sp)+'＿'+sw.slice(sp+1) : '＿'+sw;
-    if(!seen.has(masked) && masked!==show){ seen.add(masked); distr.push(masked); }
+  const target=t.c;
+  const answer=t.word;
+  const opts=[answer];
+  const seen=new Set([answer]);
+
+  // 優先揀長度相近、但唔包含目標字嘅詞做干擾
+  const candidates=shuffle(pool().filter(w=>
+    w.word!==answer && !w.word.includes(target) &&
+    Math.abs(w.word.length-answer.length)<=1
+  ));
+  for(const w of candidates){
+    if(opts.length>=4) break;
+    const word=randWord(w);
+    if(word && !seen.has(word)){ seen.add(word); opts.push(word); }
   }
-  // 若唔夠 3 個干擾，用隨機詞補
+  // 字庫較細時補足 4 個不同詞語
   for(const w of shuffle(pool())){
-    if(distr.length>=3) break;
-    const sw=randWord(w);
-    if(!sw) continue;
-    const sp=sw.indexOf(w.c);
-    const masked = sp>=0 ? sw.slice(0,sp)+'＿'+sw.slice(sp+1) : '＿'+sw;
-    if(!seen.has(masked) && masked!==show){ seen.add(masked); distr.push(masked); }
+    if(opts.length>=4) break;
+    const word=randWord(w);
+    if(word && !word.includes(target) && !seen.has(word)){
+      seen.add(word); opts.push(word);
+    }
   }
-  const opts=shuffle([show, ...distr]);
-  // 確保 4 個選項
-  while(opts.length<4){
-    const r=shuffle(pool().filter(w=>{
-      const m=randWord(w); if(!m) return false;
-      const sp=m.indexOf(w.c); const mm=sp>=0?m.slice(0,sp)+'＿'+m.slice(sp+1):'＿'+m;
-      return !opts.includes(mm) && mm!==show;
-    }))[0];
-    if(!r) break;
-    const m=randWord(r); const sp=m.indexOf(r.c);
-    opts.push(sp>=0?m.slice(0,sp)+'＿'+m.slice(sp+1):'＿'+m);
-  }
+
   return {
-    qtype:'🎧 聽單字，邊個詞缺咗呢個字？',
-    audio: missing,
-    display: '👇 聽住單字發音，揀返缺咗『？』嘅詞語',
-    options:opts, answer:show
+    qtype:'🎧 聽單字，揀出包含呢個字嘅詞語',
+    audio:target,
+    display:'👇 邊個詞語入面有你聽到嘅字？',
+    options:shuffle(opts.slice(0,4)),
+    answer
   };
 }
 
